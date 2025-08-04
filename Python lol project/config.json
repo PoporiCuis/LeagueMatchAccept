@@ -1,0 +1,13 @@
+{
+    "auto_accept": true,
+    "auto_pick": true,
+    "auto_ban": true,
+    "pick_priority": [
+        "90",
+        "268",
+        "61"
+    ],
+    "ban_priority": [
+        "910"
+    ]
+}

@@ -14,7 +14,7 @@ If you just want to run the program, here’s the download link:
 since it uses PyInstaller it get's false positive for threat detection on windows.
 This won't get you baned since it just uses League'sAPI and it also does nothing during a match.
 
-https://drive.google.com/file/d/15WTL79GOuz1agOKJ2NTBfG8rYKm-j2kV/view?usp=sharing
+https://drive.google.com/file/d/1lMAi-d6wulYdh1mV9hQPojvCfp8IJeU6/view?usp=sharing
 
 💬 Need Help?
 

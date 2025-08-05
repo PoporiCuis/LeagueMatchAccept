@@ -1,4 +1,4 @@
-# LeagueMatchAccept
+# LeagueMatchAutoAccept
 HEY!! It's my first project, so don't expect much.
 The code is in Python, uses Tkinter for the UI, and the .exe was created with PyInstaller.
 

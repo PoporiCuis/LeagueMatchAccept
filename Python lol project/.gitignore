@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.py[cod]
+build/
+dist/
+lol_match_assistant.lock
+champions_owned.json
+league_api/debug_league_response.json
+league_api/lcu_debug_*.json

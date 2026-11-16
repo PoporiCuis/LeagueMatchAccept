@@ -1,11 +1,9 @@
 import json
-import os
-import sys
 
 CONFIG_FILE = "config.json"
 
 #exe stuff
-from exe_stuff import get_file_path, get_config_path, resource_path
+from exe_stuff import get_config_path
 #end of exe stuff
 
 def auto_pick_once(session, base_url,current_role):
@@ -88,7 +86,8 @@ def auto_pick_once(session, base_url,current_role):
                     "championId": champ_id,
                     "completed": True
                 },
-                verify=False
+                verify=False,
+                timeout=5,
             )
 
             if patch_resp.status_code == 204:

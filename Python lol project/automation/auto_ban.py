@@ -1,11 +1,9 @@
 import json
-import os
-import sys
 
 CONFIG_FILE = "config.json"
 
 #exe stuff???
-from exe_stuff import get_file_path, get_config_path, resource_path
+from exe_stuff import get_config_path
 #end of exe stuff
 
 def auto_ban_once(session, base_url,detected_role):
@@ -17,7 +15,7 @@ def auto_ban_once(session, base_url,detected_role):
         champ_data = my_gameflow_phase.json()
         phase = champ_data.get("timer", {}).get("phase", None)
 
-        if phase not in ("BAN_PICK"):
+        if phase != "BAN_PICK":
             return False
 
         with open(get_config_path(CONFIG_FILE), "r", encoding="utf-8") as f:
@@ -59,7 +57,8 @@ def auto_ban_once(session, base_url,detected_role):
                         res = session.patch(
                             f"{base_url}/lol-champ-select/v1/session/actions/{action.get('id')}",
                             json={"championId": champ_id_to_ban, "completed": True},
-                            verify=False
+                            verify=False,
+                            timeout=5,
                         )
 
                         if res.status_code == 204:

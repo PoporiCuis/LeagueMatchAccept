@@ -1,126 +1,95 @@
 import os
-import sys
 import shutil
+import sys
 
-CONFIG_FILES = ["config.json", "champions.json", "champions_owned.json"]
+CONFIG_FILES = ["config.json", "champions.json"]
 
-# ---------- Base folder ----------
-if getattr(sys, 'frozen', False):
-    BASE_DIR = os.path.dirname(sys.executable)  # next to the exe
+if getattr(sys, "frozen", False):
+    BASE_DIR = os.path.dirname(sys.executable)
 else:
-    BASE_DIR = os.path.abspath(".")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ---------- Paths ----------
+
 def get_file_path(filename):
-    """Get full path for a file next to the exe or in dev mode."""
+    """Get the path to a file beside the app or executable."""
     return os.path.join(BASE_DIR, filename)
+
 
 def get_config_path(filename="config.json"):
     return get_file_path(filename)
 
+
 def resource_path(relative_path):
-    """Get path to bundled resource in PyInstaller (_MEIPASS) or fallback to script folder."""
-    if hasattr(sys, "_MEIPASS"):  # only exists inside a PyInstaller exe
-        return os.path.join(sys._MEIPASS, relative_path) # type: ignore
-    return os.path.join(os.path.abspath("."), relative_path)
+    """Find a bundled resource or a file beside the source code."""
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(BASE_DIR, relative_path)
 
 
-# ---------- Ensure JSON files exist ----------
 def ensure_json_files():
-    """Copy JSON files from resources to the exe folder if they don't exist."""
+    """Copy packaged JSON defaults beside the executable when needed."""
     for filename in CONFIG_FILES:
-        dest = get_file_path(filename)
-        if not os.path.exists(dest):
-            src = resource_path(filename)
-            if os.path.exists(src):
-                shutil.copyfile(src, dest)
-                print(f"✅ Copied {filename} to {dest}")
+        destination = get_file_path(filename)
+        if not os.path.exists(destination):
+            resource_name = "config.default.json" if filename == "config.json" else filename
+            source = resource_path(resource_name)
+            if os.path.exists(source):
+                shutil.copyfile(source, destination)
+                print(f"✅ Copied {filename} to {destination}")
             else:
-                print(f"⚠️ Resource {filename} not found in {src}, please copy manually.")
+                print(f"⚠️ Resource {filename} not found in {source}.")
 
-# ---------- Single-instance check ----------
-def single_instance_check():
+
+def acquire_instance_lock():
+    """Return an open lock file, or None when another instance owns it."""
     import msvcrt
-    import tkinter as tk
-    from tkinter import messagebox
-    import psutil
 
-    # Use a more specific lock file name to avoid conflicts
-    lock_file = os.path.join(BASE_DIR, "lol_match_assistant.lock")
+    lock_path = get_file_path("lol_match_assistant.lock")
+    lock_file = open(lock_path, "a+")
 
     try:
-        # Try to open and lock the file
-        lock = open(lock_file, 'w')
-        msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+        lock_file.seek(0, os.SEEK_END)
+        if lock_file.tell() == 0:
+            lock_file.write("\0")
+            lock_file.flush()
 
-        # Write our PID to the lock file for identification
-        lock.write(str(os.getpid()))
-        lock.flush()
+        lock_file.seek(0)
+        msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+    except OSError:
+        lock_file.close()
+        return None
 
-        # If we get here, we successfully acquired the lock
-        # Store the lock handle globally so it doesn't get garbage collected
-        global _app_lock
-        _app_lock = lock
+    try:
+        lock_file.seek(0)
+        lock_file.truncate()
+        lock_file.write(str(os.getpid()))
+        lock_file.flush()
+    except OSError:
+        lock_file.close()
+        return None
 
-    except (OSError, IOError):
-        # Check if there's actually a running process
-        running_process = None
-        if os.path.exists(lock_file):
-            try:
-                with open(lock_file, 'r') as f:
-                    old_pid = int(f.read().strip())
-                # Check if process is still running
-                if psutil.pid_exists(old_pid):
-                    proc = psutil.Process(old_pid)
-                    if proc.is_running():
-                        running_process = proc
-            except (ValueError, psutil.NoSuchProcess, PermissionError):
-                pass
+    return lock_file
 
-        # Show message box with option to kill orphaned process
+
+def single_instance_check():
+    import tkinter as tk
+    from tkinter import messagebox
+
+    lock_file = acquire_instance_lock()
+    if lock_file is None:
         root = tk.Tk()
-        root.withdraw()  # Hide the main window
-
-        if running_process:
-            result = messagebox.askyesno(
-                "LoL Match Assistant",
-                "Another instance of LoL Match Assistant is already running.\n\n"
-                "Would you like to close the existing instance and continue?"
-            )
-
-            if result:
-                try:
-                    running_process.terminate()
-                    running_process.wait(timeout=5)
-                    # Remove the lock file
-                    if os.path.exists(lock_file):
-                        os.remove(lock_file)
-                    root.destroy()
-                    # Retry the lock
-                    return single_instance_check()
-                except (psutil.TimeoutExpired, psutil.AccessDenied):
-                    messagebox.showerror(
-                        "Error",
-                        "Could not close the existing instance. Please close it manually."
-                    )
-        else:
-            # No running process found, just clean up the lock file
-            if os.path.exists(lock_file):
-                try:
-                    os.remove(lock_file)
-                    root.destroy()
-                    return single_instance_check()
-                except OSError:
-                    pass
-
-            messagebox.showwarning(
-                "LoL Match Assistant",
-                "Another instance appears to be running.\n\n"
-                "Please check your system tray or task manager."
-            )
-
+        root.withdraw()
+        messagebox.showwarning(
+            "LoL Match Assistant",
+            "LoL Match Assistant is already running.\n\n"
+            "Check the system tray for the open app.",
+        )
         root.destroy()
         sys.exit(0)
 
-# Global variable to keep the lock file handle alive
+    # Keep the file handle alive so Windows keeps the lock for this process.
+    global _app_lock
+    _app_lock = lock_file
+
+
 _app_lock = None

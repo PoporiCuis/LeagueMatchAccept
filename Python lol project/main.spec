@@ -6,7 +6,7 @@ current_dir = os.path.dirname(os.path.abspath('main.py'))
 
 # Data files to include in the executable
 data_files = [
-    ('config.json', '.'),
+    ('config.default.json', '.'),
     ('champions.json', '.'),
     ('minion.ico', '.'),
 ]
@@ -19,7 +19,6 @@ a = Analysis(
     hiddenimports=[
         'PIL._tkinter_finder',
         'pystray._win32',
-        'requests.packages.urllib3.util.retry',
         'tkinter',
         'tkinter.messagebox',
         'tkinter.ttk'

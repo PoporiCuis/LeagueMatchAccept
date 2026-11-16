@@ -1,0 +1,28 @@
+LoL Match Assistant - How to Create the Shareable EXE Folder
+
+QUICK METHOD
+1. Open this project folder in File Explorer:
+   D:\DescargasD\LeagueMatchAccept\Python lol project
+2. Double-click BUILD_RELEASE.bat.
+3. If Windows asks whether to replace an existing release folder, choose Y to rebuild it or N to keep the old one.
+4. When it finishes, the ready-to-share folder is on your Desktop:
+   LoLMatchAssistant_Release
+5. Share the whole folder, or zip it before sending. Friends open the folder and run LoLMatchAssistant.exe. They do not need Python.
+
+The builder uses this project's .venv when available, installs requirements.txt, builds with main.spec, and uses config.default.json so your personal config.json and champions_owned.json are not included.
+
+BUILD FROM POWERSHELL
+Open PowerShell in this project folder and run:
+
+  .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+  .\.venv\Scripts\python.exe -m PyInstaller main.spec --clean --noconfirm
+
+That command creates the executable at:
+  dist\LoLMatchAssistant.exe
+
+To create the complete Desktop folder with the default config and champion data, use BUILD_RELEASE.bat instead.
+
+If .venv does not exist yet, create it first:
+  D:\Python\python.exe -m venv .venv
+
+Then run the two install/build commands above.

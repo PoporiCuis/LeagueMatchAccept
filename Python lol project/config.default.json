@@ -1,0 +1,26 @@
+{
+  "SummonerID": "",
+  "auto_accept": false,
+  "auto_ban": false,
+  "auto_pick": false,
+  "auto_detect_role": false,
+  "last_ban_profile": "Mid",
+  "last_pick_profile": "Jungle",
+  "pick_priority_profiles": {
+    "Top": [],
+    "Jungle": [],
+    "Mid": [],
+    "ADC": [],
+    "Support": [],
+    "Custom": []
+  },
+  "ban_priority_profiles": {
+    "Top": [],
+    "Jungle": [],
+    "Mid": [],
+    "ADC": [],
+    "Support": [],
+    "Custom": []
+  },
+  "auto_hover": false
+}
